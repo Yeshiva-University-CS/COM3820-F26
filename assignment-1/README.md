@@ -32,7 +32,7 @@ assignment-1> java -jar ./target/jackpot-1.jar
    12:21:37.855 [main] INFO - Loaded 30 images
    ```
 
-2. When the **Spin** button is pressed, each slot reel will cycle through images in a different order, displaying each image for 50 milliseconds before moving on to the next image. You must also log that the button was pressed:
+2. When the **Spin** button is pressed, each slot reel will cycle through images in a different order, displaying each image for 50 milliseconds before moving on to the next image. The text of the button will also change to read "Stop". You must also log that the button was pressed:
 
    ```
    12:47:09.119 [AWT-EventQueue-0] INFO - Spin button pressed
@@ -57,7 +57,8 @@ assignment-1> java -jar ./target/jackpot-1.jar
      12:47:11.600 [Thread-11] INFO - Slot reel #2 was interrupted
      12:47:11.605 [Thread-9] INFO - Slot reel #0 was interrupted
      ```
-
+   - **c.** Once the reels have stopped -- either because the **Stop** or **Reset** button was pressed, or the reels have all completed -- the text of the button must revert back to "Spin".
+     
 3. When the **Reset** button is pressed, the slot reels are reset to display the initial game logo. As noted above, if any of the reels are in the midst of spinning, they must interrupt themselves and not wait until their random cycling time completes. You must also log that the **Reset** button was pressed:
 
    ```
