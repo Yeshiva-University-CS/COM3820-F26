@@ -88,7 +88,7 @@ public class BenchmarkRunner {
         }
 
         System.out.printf("Speedup (RawThreads1): %.2fx%n", seq.timeMs / raw1.timeMs);
-        System.out.printf("Speedup (RawThreads2): %.2fx%n", seq.timeMs / raw1.timeMs);
-        System.out.printf("Speedup (RawThreads3): %.2fx%n", seq.timeMs / raw1.timeMs);
+        System.out.printf("Speedup (RawThreads2): %.2fx%n", seq.timeMs / raw2.timeMs);
+        System.out.printf("Speedup (RawThreads3): %.2fx%n", seq.timeMs / raw3.timeMs);
     }
 }
