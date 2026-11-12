@@ -53,6 +53,7 @@ How you load-test your brokerage before you submit is up to you.
 - Use Java 21, built and run with Maven. Log through the provided Log4j2 logger; do not use `System.out`.
 - Do not modify `App`, `TradeServer`, `StockPrices`, `StockReader`, the provided tests, or the POM. You may add methods, fields and classes, but do not change the provided interface signatures.
 - Your code <strong><span style="color:#c00000">may not use concurrent collections anywhere</span></strong>: no `ConcurrentHashMap`, `ConcurrentSkipListMap`, `CopyOnWriteArrayList`, blocking queues, or `Collections.synchronizedMap` and its relatives. You may use locks and atomics.
+- `mvn test` checks these constraints for you (`PublicConstraintsTest`), along with the submission folder. If your submission breaks any of them, I will not grade it, and your grade is 0.
 - I have included an optional JDK Flight Recorder guide, `JFR-Intro.md`.
 
 ## Submission
