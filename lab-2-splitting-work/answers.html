@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab 2 Answers</title>
+<style>
+:root {
+  --bg: #f7f7f5; --panel: #ffffff; --text: #1d1d1b; --muted: #666660; --line: #dcdcd6;
+  --accent: #2f5fa7; --accent-text: #ffffff; --ok: #2e7d4f; --warn: #a15c00; --bad: #b3261e;
+  --input: #ffffff; --code: #f0f0ec;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161615; --panel: #202020; --text: #ececea; --muted: #a3a39d; --line: #3a3a37;
+    --accent: #7aa7ea; --accent-text: #10161f; --ok: #6cc596; --warn: #e3a64f; --bad: #f08a80;
+    --input: #1a1a19; --code: #2a2a28;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 860px; margin: 0 auto; padding: 24px 16px 96px; }
+h1 { font-size: 1.6rem; margin: 0 0 4px; }
+h2 { font-size: 1.15rem; margin: 0 0 12px; }
+h3 { font-size: 1rem; margin: 18px 0 6px; }
+.sub { color: var(--muted); margin: 0 0 20px; }
+section { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; margin: 0 0 16px; }
+label { display: block; font-weight: 600; margin: 12px 0 4px; }
+.hint { color: var(--muted); font-size: 0.9rem; margin: 2px 0 6px; }
+input[type=text], input[type=number], textarea, select {
+  width: 100%; font: inherit; color: var(--text); background: var(--input);
+  border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; }
+textarea { min-height: 70px; resize: vertical; }
+textarea.paste { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.82rem; min-height: 90px; background: var(--code); }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0 14px; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85em; background: var(--code); padding: 1px 4px; border-radius: 4px; overflow-wrap: anywhere; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; margin: 8px 0 4px; min-width: 100%; }
+th, td { text-align: left; padding: 4px 8px 4px 0; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-size: 0.85rem; color: var(--muted); font-weight: 600; }
+td input[type=number] { width: 6.5rem; }
+td select { width: 7.5rem; }
+.status { font-size: 0.88rem; margin: 6px 0 0; min-height: 1.3em; }
+.status.ok { color: var(--ok); } .status.warn { color: var(--warn); } .status.bad { color: var(--bad); }
+.bar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--panel); border-top: 1px solid var(--line); }
+.bar-inner { max-width: 860px; margin: 0 auto; padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+button, .filebtn { font: inherit; border: 1px solid var(--line); background: var(--input); color: var(--text);
+  border-radius: 6px; padding: 7px 14px; cursor: pointer; }
+button.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 600; }
+.filebtn input { display: none; }
+#saveStatus { color: var(--muted); font-size: 0.88rem; margin-left: auto; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Lab 2 Answers: Splitting Up the Work</h1>
+  <p class="sub">Fill this in as you work. For each run, paste the whole output of <code>run.py</code> into its box and the table fills itself in. <b>Save</b> downloads a JSON file: that file is what you submit. <b>Load</b> opens a saved file to continue. Your work is also kept in this browser between visits, but only the saved file counts.</p>
+
+  <section>
+    <h2>You and your machine</h2>
+    <label for="name">Name</label><input type="text" id="name" data-field="student.name">
+    <div class="grid">
+      <div><label for="cpus">CPU count</label><input type="number" id="cpus" min="1" data-field="machine.cpus"><p class="hint">Filled in from your pasted output.</p></div>
+      <div><label for="cpu">Processor model</label><input type="text" id="cpu" data-field="machine.cpu" placeholder="e.g. Apple M2, Intel i7-1260P"></div>
+      <div><label for="os">Operating system</label><input type="text" id="os" data-field="machine.os" placeholder="e.g. macOS 15, Windows 11, Ubuntu 24.04"></div>
+    </div>
+  </section>
+
+  <div id="parts"></div>
+</main>
+
+<div class="bar"><div class="bar-inner">
+  <button class="primary" id="saveBtn">Save JSON</button>
+  <label class="filebtn">Load JSON<input type="file" id="loadInput" accept=".json,application/json"></label>
+  <button id="clearBtn">Clear</button>
+  <span id="saveStatus"></span>
+</div></div>
+
+<script>
+"use strict";
+const LAB = "lab-2-splitting-work";
+const FORMAT = 1;
+const STORE = "lab2-answers-v1";
+const W5 = [1, 2, 4, 8, 16];
+const KB5 = [4, 64, 1024, 16384, 65536];
+
+// Each run: the command, what its header must say, and the fixed column of its table.
+const PARTS = [
+  { title: "Setup: sequential baselines", items: [
+    { run: "seq_small", cmd: "uv run run.py small", dataset: "small", mode: "seq", gil: "on", key: "workers", keys: [1] },
+    { run: "seq_mixed", cmd: "uv run run.py mixed", dataset: "mixed", mode: "seq", gil: "on", key: "workers", keys: [1] },
+  ]},
+  { title: "Part 1: Threads, one file per task", items: [
+    { run: "threads_gil", cmd: "uv run run.py small --mode threads --workers 1,2,4,8,16", dataset: "small", mode: "threads", gil: "on", key: "workers", keys: W5 },
+    { q: "p1_why", text: "Does it get faster with more threads? Why not?" },
+    { run: "threads_nogil", cmd: "uv run --isolated --python 3.14t run.py small --mode threads --workers 1,2,4,8,16", dataset: "small", mode: "threads", gil: "off", key: "workers", keys: W5 },
+    { q: "p1_changed", text: "What changed, and what does that tell you about the first run?" },
+    { q: "p1_cost", text: "Compare the 1-thread times of the two runs. What does removing the GIL cost?" },
+  ]},
+  { title: "Part 2: Processes, one file per task", items: [
+    { run: "procs", cmd: "uv run run.py small --mode procs --workers 1,2,4,8,16", dataset: "small", mode: "procs", gil: "on", key: "workers", keys: W5 },
+    { q: "p2_scaling", text: "How does the speedup grow with the pool size? Where does it stop growing, and how does that compare with your CPU count?" },
+  ]},
+  { title: "Part 3: Many tiny files and a few huge ones", items: [
+    { run: "mixed_procs", cmd: "uv run run.py mixed --mode procs --workers 4,8,16", dataset: "mixed", mode: "procs", gil: "on", key: "workers", keys: [4, 8, 16] },
+    { q: "p3_why_slow", text: "Why does it barely beat sequential, whatever the pool size?" },
+    { run: "tasks", cmd: "uv run run.py mixed --mode tasks --task-kb 4,64,1024,16384,65536", dataset: "mixed", mode: "tasks", gil: "on", key: "task_kb", keys: KB5 },
+    { q: "p3_extremes", text: "Think about the two extremes in this dataset. Is a 2 KB file worth a task of its own? Should one worker get a whole 100 MB file while the others wait?" },
+    { q: "p3_best", text: "Which task size is fastest? Why are the smallest and the largest slow?" },
+    { q: "p3_design", text: "Describe how your count_tasks builds its tasks." },
+  ]},
+  { title: "Last step: sub-interpreters", items: [
+    { run: "interp_procs", cmd: "uv run run.py small --mode procs --workers 1,2,4,8,16", note: "with InterpreterPoolExecutor in count_procs", dataset: "small", mode: "procs", gil: "on", key: "workers", keys: W5 },
+    { run: "interp_tasks", cmd: "uv run run.py mixed --mode tasks --task-kb 4,64,1024,16384,65536", note: "with InterpreterPoolExecutor in count_tasks", dataset: "mixed", mode: "tasks", gil: "on", key: "task_kb", keys: KB5 },
+    { q: "p4_compare", text: "How do your numbers compare with processes, and with the free-threaded threads in Part 1? What do sub-interpreters have in common with processes?" },
+  ]},
+];
+
+const HEADER = /^(\w+): (\d+) files, (\d+) MB; sequential ([\d.]+) s; (\d+) CPUs; Python (\S+) \(GIL (on|off)\); mode (\w+)/m;
+const ROW = /^\s*(\d+)\s+(?:(\d+)\s+)?([\d.]+)\s+([\d.]+)x\s+(OK|FAILED.*)$/;
+
+const $ = (id) => document.getElementById(id);
+const el = (tag, attrs = {}, ...kids) => {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") e.className = v; else if (k === "text") e.textContent = v; else e.setAttribute(k, v);
+  }
+  kids.forEach((k) => e.append(k));
+  return e;
+};
+const allRuns = () => PARTS.flatMap((p) => p.items.filter((i) => i.run));
+const allQuestions = () => PARTS.flatMap((p) => p.items.filter((i) => i.q));
+
+// ---------- build the form ----------
+function buildRun(item) {
+  const box = el("div", { class: "run", id: "run-" + item.run });
+  box.append(el("h3", { text: "Run: " }));
+  box.lastChild.append(el("code", { text: item.cmd }));
+  if (item.note) box.append(el("p", { class: "hint", text: item.note }));
+  const paste = el("textarea", { class: "paste", id: "paste-" + item.run, placeholder: "Paste the whole output of run.py here", spellcheck: "false" });
+  box.append(paste);
+  box.append(el("p", { class: "status", id: "status-" + item.run }));
+  const table = el("table");
+  const head = el("tr");
+  head.append(el("th", { text: item.key === "task_kb" ? "task KB" : "workers" }));
+  if (item.key === "task_kb") head.append(el("th", { text: "workers" }));
+  head.append(el("th", { text: "seconds" }), el("th", { text: "speedup" }), el("th", { text: "check" }));
+  table.append(head);
+  for (const k of item.keys) {
+    const tr = el("tr");
+    tr.append(el("td", { text: String(k) }));
+    if (item.key === "task_kb") tr.append(el("td", {}, el("input", { type: "number", min: "1", "data-cell": `${item.run}|${k}|workers` })));
+    tr.append(el("td", {}, el("input", { type: "number", step: "0.01", min: "0", "data-cell": `${item.run}|${k}|seconds` })));
+    tr.append(el("td", {}, el("input", { type: "number", step: "0.1", min: "0", "data-cell": `${item.run}|${k}|speedup` })));
+    const sel = el("select", { "data-cell": `${item.run}|${k}|check` });
+    ["", "OK", "FAILED"].forEach((v) => sel.append(el("option", { value: v, text: v || "-" })));
+    tr.append(el("td", {}, sel));
+    table.append(tr);
+  }
+  box.append(el("div", { class: "table-wrap" }, table));
+  paste.addEventListener("input", () => { applyPaste(item, true); autosave(); });
+  return box;
+}
+
+function buildQuestion(item) {
+  const box = el("div");
+  box.append(el("label", { for: "q-" + item.q, text: item.text }));
+  box.append(el("textarea", { id: "q-" + item.q, "data-field": "answers." + item.q }));
+  return box;
+}
+
+function build() {
+  const root = $("parts");
+  for (const part of PARTS) {
+    const sec = el("section");
+    sec.append(el("h2", { text: part.title }));
+    for (const item of part.items) sec.append(item.run ? buildRun(item) : buildQuestion(item));
+    root.append(sec);
+  }
+  document.addEventListener("input", (e) => { if (e.target.matches("[data-field],[data-cell]")) autosave(); });
+  document.addEventListener("change", (e) => { if (e.target.matches("[data-cell]")) autosave(); });
+}
+
+// ---------- pasted output -> table ----------
+function parseOutput(text) {
+  const h = HEADER.exec(text);
+  const meta = h ? { dataset: h[1], files: +h[2], mb: +h[3], sequential: +h[4], cpus: +h[5], python: h[6], gil: h[7], mode: h[8] } : null;
+  const rows = [];
+  for (const line of text.split(/\r?\n/)) {
+    const m = ROW.exec(line);
+    if (m) rows.push({ workers: +m[1], task_kb: m[2] ? +m[2] : null, seconds: +m[3], speedup: +m[4], check: m[5].startsWith("OK") ? "OK" : "FAILED" });
+  }
+  return { meta, rows };
+}
+
+function cell(run, key, col) { return document.querySelector(`[data-cell="${run}|${key}|${col}"]`); }
+
+function applyPaste(item, fillTable) {
+  const text = $("paste-" + item.run).value;
+  const status = $("status-" + item.run);
+  status.className = "status";
+  status.textContent = "";
+  if (!text.trim()) return;
+  const { meta, rows } = parseOutput(text);
+  const problems = [];
+  if (!meta) problems.push("no run.py header line found");
+  else {
+    if (meta.dataset !== item.dataset) problems.push(`dataset is ${meta.dataset}, expected ${item.dataset}`);
+    if (meta.mode !== item.mode) problems.push(`mode is ${meta.mode}, expected ${item.mode}`);
+    if (meta.gil !== item.gil) problems.push(`GIL is ${meta.gil}, expected ${item.gil}`);
+    if (meta.cpus && !$("cpus").value) $("cpus").value = meta.cpus;
+  }
+  let filled = 0;
+  if (fillTable) {
+    for (const r of rows) {
+      const key = item.key === "task_kb" ? r.task_kb : r.workers;
+      if (!item.keys.includes(key)) continue;
+      cell(item.run, key, "seconds").value = r.seconds;
+      cell(item.run, key, "speedup").value = r.speedup;
+      cell(item.run, key, "check").value = r.check;
+      if (item.key === "task_kb") cell(item.run, key, "workers").value = r.workers;
+      filled++;
+    }
+  }
+  const failed = rows.some((r) => r.check === "FAILED");
+  if (problems.length) { status.className = "status warn"; status.textContent = "Check this paste: " + problems.join("; ") + "."; }
+  else if (failed) { status.className = "status bad"; status.textContent = "Some rows FAILED the check: your code gives wrong counts."; }
+  else if (!rows.length) { status.className = "status warn"; status.textContent = "No result rows found in the paste."; }
+  else { status.className = "status ok"; status.textContent = fillTable ? `Filled ${filled} row(s) from the output.` : `${rows.length} row(s) in the output.`; }
+}
+
+// ---------- form <-> JSON ----------
+function num(v) { return v === "" || v == null ? null : Number(v); }
+
+function collect() {
+  const data = { lab: LAB, format: FORMAT, saved_at: new Date().toISOString(), student: {}, machine: {}, runs: {}, answers: {} };
+  document.querySelectorAll("[data-field]").forEach((e) => {
+    const [group, key] = e.dataset.field.split(".");
+    data[group][key] = e.type === "number" ? num(e.value) : e.value.trim();
+  });
+  for (const item of allRuns()) {
+    const text = $("paste-" + item.run).value;
+    const { meta } = parseOutput(text);
+    const rows = item.keys.map((k) => {
+      const row = { [item.key]: k };
+      if (item.key === "task_kb") row.workers = num(cell(item.run, k, "workers").value);
+      row.seconds = num(cell(item.run, k, "seconds").value);
+      row.speedup = num(cell(item.run, k, "speedup").value);
+      row.check = cell(item.run, k, "check").value || null;
+      return row;
+    });
+    data.runs[item.run] = { command: item.cmd, expected: { dataset: item.dataset, mode: item.mode, gil: item.gil }, header: meta, rows, output: text };
+  }
+  return data;
+}
+
+function fill(data) {
+  if (!data || data.lab !== LAB) throw new Error("This is not a Lab 2 answers file.");
+  document.querySelectorAll("[data-field]").forEach((e) => {
+    const [group, key] = e.dataset.field.split(".");
+    const v = data[group] ? data[group][key] : null;
+    e.value = v == null ? "" : v;
+  });
+  for (const item of allRuns()) {
+    const r = (data.runs || {})[item.run] || {};
+    $("paste-" + item.run).value = r.output || "";
+    for (const k of item.keys) {
+      const row = (r.rows || []).find((x) => x[item.key] === k) || {};
+      cell(item.run, k, "seconds").value = row.seconds ?? "";
+      cell(item.run, k, "speedup").value = row.speedup ?? "";
+      cell(item.run, k, "check").value = row.check ?? "";
+      if (item.key === "task_kb") cell(item.run, k, "workers").value = row.workers ?? "";
+    }
+    applyPaste(item, false);
+  }
+}
+
+// ---------- save / load / autosave ----------
+let saveTimer = null;
+function autosave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try { localStorage.setItem(STORE, JSON.stringify(collect())); $("saveStatus").textContent = "Kept in this browser. Save JSON to submit."; }
+    catch (e) { /* storage unavailable: the JSON file still works */ }
+  }, 400);
+}
+
+function save() {
+  const data = collect();
+  const who = (data.student.name || "student").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "student";
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const a = el("a", { href: URL.createObjectURL(blob), download: `lab2-answers-${who}.json` });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  $("saveStatus").textContent = `Saved ${a.download} (check your Downloads folder).`;
+  autosave();
+}
+
+$("saveBtn").addEventListener("click", save);
+$("loadInput").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try { fill(JSON.parse(reader.result)); autosave(); $("saveStatus").textContent = `Loaded ${file.name}.`; }
+    catch (err) { alert("Could not load that file: " + err.message); }
+  };
+  reader.readAsText(file);
+  e.target.value = "";
+});
+$("clearBtn").addEventListener("click", () => {
+  if (!confirm("Clear every answer on this page? Save JSON first if you want to keep them.")) return;
+  try { localStorage.removeItem(STORE); } catch (e) {}
+  location.reload();
+});
+
+build();
+try { const kept = localStorage.getItem(STORE); if (kept) { fill(JSON.parse(kept)); $("saveStatus").textContent = "Restored your work from this browser."; } }
+catch (e) { /* nothing kept, or storage unavailable */ }
+</script>
+</body>
+</html>
